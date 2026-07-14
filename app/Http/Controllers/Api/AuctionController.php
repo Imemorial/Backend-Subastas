@@ -17,7 +17,7 @@ final class AuctionController extends Controller
         $auctions = Auction::query()
             ->with('product.images')
             ->whereHas('product')
-            ->where(AuctionStatus::Scheduled)
+            ->where('status', AuctionStatus::Scheduled)
             ->whereNotNull('scheduled_at')
             ->orderBy('scheduled_at')
             ->limit(8)

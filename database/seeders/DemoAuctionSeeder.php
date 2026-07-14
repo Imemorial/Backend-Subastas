@@ -82,6 +82,67 @@ class DemoAuctionSeeder extends Seeder
             ['name' => 'iPad Air M2', 'retail_value' => 749.00, 'real_cost' => 480.00, 'final_price' => 7.55, 'total_bids' => 755],
         ];
 
+        $scheduledProducts = [
+            [
+                'name' => 'Apple Watch Ultra 2',
+                'real_cost' => 620.00,
+                'retail_value' => 899.00,
+                'description' => 'Reloj inteligente resistente con GPS dual.',
+                'scheduled_at' => now()->addHours(6),
+            ],
+            [
+                'name' => 'Dyson V15 Detect',
+                'real_cost' => 480.00,
+                'retail_value' => 749.00,
+                'description' => 'Aspirador inalámbrico con detección láser de polvo.',
+                'scheduled_at' => now()->addDay(),
+            ],
+            [
+                'name' => 'Sony WH-1000XM5',
+                'real_cost' => 260.00,
+                'retail_value' => 399.00,
+                'description' => 'Auriculares premium con cancelación de ruido.',
+                'scheduled_at' => now()->addDays(2),
+            ],
+            [
+                'name' => 'GoPro Hero 13 Black',
+                'real_cost' => 320.00,
+                'retail_value' => 499.00,
+                'description' => 'Cámara de acción 5.3K con estabilización HyperSmooth.',
+                'scheduled_at' => now()->addDays(3),
+            ],
+        ];
+
+        foreach ($scheduledProducts as $data) {
+            $product = Product::query()->withTrashed()->updateOrCreate(
+                ['slug' => Str::slug($data['name'])],
+                [
+                    'name' => $data['name'],
+                    'description' => $data['description'],
+                    'real_cost' => $data['real_cost'],
+                    'retail_value' => $data['retail_value'],
+                    'status' => 'published',
+                    'deleted_at' => null,
+                ],
+            );
+
+            Auction::query()->updateOrCreate(
+                ['product_id' => $product->id, 'status' => AuctionStatus::Scheduled],
+                [
+                    'starting_price' => 0,
+                    'current_price' => 0,
+                    'bid_increment' => 0.20,
+                    'initial_timer_seconds' => 15,
+                    'timer_extension_seconds' => 10,
+                    'remaining_seconds' => 15,
+                    'total_bids' => 0,
+                    'bits_consumed' => 0,
+                    'scheduled_at' => $data['scheduled_at'],
+                    'closure_allowed' => false,
+                ],
+            );
+        }
+
         foreach ($endedProducts as $index => $data) {
             $product = Product::query()->withTrashed()->updateOrCreate(
                 ['slug' => Str::slug($data['name'])],

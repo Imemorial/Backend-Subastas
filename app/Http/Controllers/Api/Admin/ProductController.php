@@ -67,17 +67,7 @@ final class ProductController extends Controller
 
     public function destroy(Product $product): JsonResponse
     {
-        $hasActiveAuction = $product->auctions()
-            ->whereIn('status', ['active', 'scheduled', 'paused'])
-            ->exists();
-
-        if ($hasActiveAuction) {
-            return response()->json([
-                'message' => 'No se puede eliminar un producto con subastas activas o programadas.',
-            ], 422);
-        }
-
-        $product->delete();
+        $this->productService->delete($product);
 
         return response()->json(['message' => 'Producto eliminado.']);
     }

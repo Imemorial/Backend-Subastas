@@ -39,8 +39,10 @@ Route::prefix('v1')->group(function (): void {
 
         Route::middleware(EnsureUserIsAdmin::class)->prefix('admin')->group(function (): void {
             Route::apiResource('products', ProductController::class);
+            Route::post('products/{product}', [ProductController::class, 'update']);
             Route::get('winner-showcases', [WinnerShowcaseAdminController::class, 'index']);
             Route::post('winner-showcases', [WinnerShowcaseAdminController::class, 'store']);
+            Route::post('winner-showcases/{winnerShowcase}', [WinnerShowcaseAdminController::class, 'update']);
             Route::patch('winner-showcases/{winnerShowcase}', [WinnerShowcaseAdminController::class, 'update']);
             Route::delete('winner-showcases/{winnerShowcase}', [WinnerShowcaseAdminController::class, 'destroy']);
             Route::get('auctions', [AuctionAdminController::class, 'index']);

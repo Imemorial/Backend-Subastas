@@ -28,6 +28,7 @@ final class UpdateProductRequest extends FormRequest
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'max:5120'],
             'status' => ['sometimes', Rule::in(['draft', 'published', 'archived'])],
+            'estimated_bits' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Product;
 
+use App\Enums\AuctionStatus;
 use App\Models\Product;
 use App\Services\Auction\AuctionMarginService;
 use Illuminate\Http\UploadedFile;
@@ -24,13 +25,13 @@ final class ProductService
         $baseSlug = $slug;
         $counter = 1;
 
-        while (Product::query()->where('slug', $slug)->exists()) {
+        while (Product::query()->withTrashed()->where('slug', $slug)->exists()) {
             $slug = $baseSlug.'-'.$counter++;
         }
 
         $estimatedBits = (int) ($data['estimated_bits'] ?? 0);
         $realCost = (float) $data['real_cost'];
-        $retailValue = isset($data['retail_value']) ? (float) $data['retail_value'] : null;
+        $retailValue = $realCost;
 
         $metadata = $this->marginService->buildProductStrategy(
             realCost: $realCost,
@@ -60,13 +61,11 @@ final class ProductService
     public function update(Product $product, array $data, array $images = []): Product
     {
         $realCost = isset($data['real_cost']) ? (float) $data['real_cost'] : (float) $product->real_cost;
-        $retailValue = array_key_exists('retail_value', $data)
-            ? ($data['retail_value'] !== null ? (float) $data['retail_value'] : null)
-            : ($product->retail_value !== null ? (float) $product->retail_value : null);
+        $retailValue = $realCost;
         $estimatedBits = (int) ($data['estimated_bits'] ?? ($product->metadata['estimated_bits'] ?? 0));
 
         $metadata = $product->metadata ?? [];
-        if (isset($data['real_cost']) || isset($data['retail_value']) || isset($data['estimated_bits'])) {
+        if (isset($data['real_cost']) || isset($data['estimated_bits'])) {
             $metadata = $this->marginService->buildProductStrategy(
                 realCost: $realCost,
                 estimatedBits: $estimatedBits,
@@ -91,6 +90,23 @@ final class ProductService
         }
 
         return $product->fresh(['images']);
+    }
+
+    public function delete(Product $product): void
+    {
+        $product->auctions()
+            ->whereIn('status', [
+                AuctionStatus::Draft,
+                AuctionStatus::Scheduled,
+                AuctionStatus::Active,
+                AuctionStatus::Paused,
+            ])
+            ->update([
+                'status' => AuctionStatus::Cancelled,
+                'ended_at' => now(),
+            ]);
+
+        $product->delete();
     }
 
     /**

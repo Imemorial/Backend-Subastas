@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Admin;
 
+use App\Enums\AuctionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MarginPreviewRequest;
 use App\Http\Requests\Admin\StoreAuctionRequest;
@@ -29,7 +30,8 @@ final class AuctionAdminController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $auctions = Auction::query()
-            ->with('product')
+            ->with(['product' => fn ($query) => $query->withTrashed()])
+            ->whereNotIn('status', [AuctionStatus::Cancelled])
             ->latest()
             ->paginate(20);
 

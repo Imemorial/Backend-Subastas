@@ -12,8 +12,27 @@ final class StorageUrl
             return null;
         }
 
-        $baseUrl = rtrim((string) config('app.url'), '/');
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
 
-        return $baseUrl.'/storage/'.ltrim($path, '/');
+        $normalized = ltrim(str_replace('\\', '/', $path), '/');
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, strlen('storage/'));
+        }
+
+        $relative = '/storage/'.$normalized;
+        $baseUrl = self::baseUrl();
+
+        return $baseUrl !== '' ? $baseUrl.$relative : $relative;
+    }
+
+    private static function baseUrl(): string
+    {
+        if (! app()->runningInConsole() && request()) {
+            return rtrim(request()->getSchemeAndHttpHost(), '/');
+        }
+
+        return rtrim((string) config('app.url'), '/');
     }
 }
