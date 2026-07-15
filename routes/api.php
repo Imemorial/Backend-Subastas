@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\WinnerShowcaseAdminController;
 use App\Http\Controllers\Api\AuctionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BidController;
+use App\Http\Controllers\Api\HomeController;
 use App\Http\Controllers\Api\BitPackController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserDashboardController;
@@ -22,6 +23,7 @@ Route::prefix('v1')->group(function (): void {
     Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
+    Route::get('/home', [HomeController::class, 'index']);
     Route::get('/auctions/upcoming', [AuctionController::class, 'upcoming']);
     Route::get('/auctions/recent-wins', [AuctionController::class, 'recentWins']);
     Route::get('/auctions', [AuctionController::class, 'index']);

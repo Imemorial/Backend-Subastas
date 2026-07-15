@@ -284,7 +284,7 @@ final class AuctionBidService
 
                 ])->save();
 
-
+                WeeklyMarginBalancerService::forgetWeeklyReportCache();
 
                 return;
 

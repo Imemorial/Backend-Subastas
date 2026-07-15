@@ -9,7 +9,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 final class ResetPasswordNotification extends ResetPassword
 {
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
         $frontendUrl = rtrim((string) config('app.frontend_url'), '/');
         $resetUrl = $frontendUrl.'/restablecer-contrasena?'.http_build_query([

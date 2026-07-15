@@ -8,21 +8,14 @@ use App\Enums\AuctionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AuctionResource;
 use App\Models\Auction;
-use App\Services\Auction\AuctionTimerProcessor;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 final class AuctionController extends Controller
 {
-    public function __construct(
-        private readonly AuctionTimerProcessor $timerProcessor,
-    ) {}
-
     public function upcoming(): AnonymousResourceCollection
     {
-        $this->timerProcessor->process();
-
         $auctions = Auction::query()
-            ->with('product.images')
+            ->with(['product.images' => fn ($query) => $query->limit(1)])
             ->whereHas('product')
             ->where('status', AuctionStatus::Scheduled)
             ->whereNotNull('scheduled_at')
@@ -36,7 +29,7 @@ final class AuctionController extends Controller
     public function recentWins(): AnonymousResourceCollection
     {
         $auctions = Auction::query()
-            ->with(['product.images', 'winner'])
+            ->with(['product.images' => fn ($query) => $query->limit(1), 'winner:id,name'])
             ->whereHas('product')
             ->where('status', AuctionStatus::Ended)
             ->whereNotNull('winner_user_id')
@@ -49,10 +42,11 @@ final class AuctionController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
-        $this->timerProcessor->process();
-
         $auctions = Auction::query()
-            ->with(['product.images', 'bids' => fn ($q) => $q->with('user')->latest('bid_at')->limit(1)])
+            ->with([
+                'product.images' => fn ($query) => $query->limit(1),
+                'bids' => fn ($query) => $query->with('user:id,name')->latest('bid_at')->limit(1),
+            ])
             ->whereHas('product')
             ->where('status', AuctionStatus::Active)
             ->orderBy('ends_at')
@@ -65,7 +59,7 @@ final class AuctionController extends Controller
     {
         $auction->load([
             'product.images',
-            'bids' => fn ($q) => $q->with('user')->latest('bid_at')->limit(20),
+            'bids' => fn ($query) => $query->with('user:id,name')->latest('bid_at')->limit(20),
         ]);
 
         return new AuctionResource($auction);

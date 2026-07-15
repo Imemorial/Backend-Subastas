@@ -19,6 +19,7 @@ final class BidController extends Controller
 
     public function store(StoreBidRequest $request, Auction $auction): JsonResponse
     {
+        $auction->loadMissing('product');
         $bitsCount = (int) $request->input('bits_count', 1);
         $bid = $this->bidService->placeBid($auction, $request->user(), $bitsCount);
 

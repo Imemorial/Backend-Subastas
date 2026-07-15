@@ -9,6 +9,7 @@ use App\DTOs\Auction\WeeklyMarginReport;
 use App\Models\Auction;
 use App\Models\WeeklyMarginSnapshot;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Balancea el margen global semanal entre 17% y 25%.
@@ -40,6 +41,25 @@ final class WeeklyMarginBalancerService
     public function buildWeeklyReport(?Carbon $referenceDate = null): WeeklyMarginReport
     {
         $date = $referenceDate ?? now();
+        $cacheKey = $this->cacheKey($date);
+
+        /** @var WeeklyMarginReport */
+        return Cache::remember($cacheKey, 60, fn () => $this->computeWeeklyReport($date));
+    }
+
+    public static function forgetWeeklyReportCache(?Carbon $referenceDate = null): void
+    {
+        $date = $referenceDate ?? now();
+        Cache::forget('weekly_margin_report_'.$date->isoWeekYear().'_'.$date->isoWeek());
+    }
+
+    private function cacheKey(Carbon $date): string
+    {
+        return 'weekly_margin_report_'.$date->isoWeekYear().'_'.$date->isoWeek();
+    }
+
+    private function computeWeeklyReport(Carbon $date): WeeklyMarginReport
+    {
         $weekStart = $date->copy()->startOfWeek();
         $weekEnd = $date->copy()->endOfWeek();
 

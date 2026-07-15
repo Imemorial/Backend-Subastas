@@ -12,6 +12,7 @@ use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Enums\UserRole;
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -31,6 +32,8 @@ final class AuthController extends Controller
         ]);
 
         $token = $user->createToken('api')->plainTextToken;
+
+        $user->notify(new WelcomeNotification());
 
         return response()->json([
             'user' => new UserResource($user),
