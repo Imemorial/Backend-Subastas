@@ -8,12 +8,19 @@ use App\Enums\AuctionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\AuctionResource;
 use App\Models\Auction;
+use App\Services\Auction\AuctionTimerProcessor;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 final class AuctionController extends Controller
 {
+    public function __construct(
+        private readonly AuctionTimerProcessor $timerProcessor,
+    ) {}
+
     public function upcoming(): AnonymousResourceCollection
     {
+        $this->timerProcessor->process();
+
         $auctions = Auction::query()
             ->with('product.images')
             ->whereHas('product')
@@ -42,6 +49,8 @@ final class AuctionController extends Controller
 
     public function index(): AnonymousResourceCollection
     {
+        $this->timerProcessor->process();
+
         $auctions = Auction::query()
             ->with(['product.images', 'bids' => fn ($q) => $q->with('user')->latest('bid_at')->limit(1)])
             ->whereHas('product')

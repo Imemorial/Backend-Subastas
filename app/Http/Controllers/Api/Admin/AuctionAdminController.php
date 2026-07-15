@@ -13,6 +13,7 @@ use App\Models\Auction;
 use App\Models\Product;
 use App\Services\Auction\AuctionManagementService;
 use App\Services\Auction\AuctionMarginService;
+use App\Services\Auction\AuctionTimerProcessor;
 use App\Services\Auction\WeeklyMarginBalancerService;
 use App\Services\Auction\WeeklySchedulePlannerService;
 use Illuminate\Http\JsonResponse;
@@ -25,10 +26,13 @@ final class AuctionAdminController extends Controller
         private readonly WeeklyMarginBalancerService $marginBalancer,
         private readonly AuctionMarginService $marginService,
         private readonly WeeklySchedulePlannerService $schedulePlanner,
+        private readonly AuctionTimerProcessor $timerProcessor,
     ) {}
 
     public function index(): AnonymousResourceCollection
     {
+        $this->timerProcessor->process();
+
         $auctions = Auction::query()
             ->with(['product' => fn ($query) => $query->withTrashed()])
             ->whereNotIn('status', [AuctionStatus::Cancelled])

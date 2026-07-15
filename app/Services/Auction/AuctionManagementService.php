@@ -78,6 +78,10 @@ final class AuctionManagementService
 
     public function activate(Auction $auction): Auction
     {
+        if (! in_array($auction->status, [AuctionStatus::Scheduled, AuctionStatus::Draft], true)) {
+            return $auction->fresh(['product']);
+        }
+
         $seconds = (int) $auction->initial_timer_seconds;
 
         $auction->forceFill([

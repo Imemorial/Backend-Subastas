@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\AuctionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BidController;
 use App\Http\Controllers\Api\BitPackController;
+use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\UserDashboardController;
 use App\Http\Controllers\Api\WalletController;
 use App\Http\Controllers\Api\WinnerShowcaseController;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function (): void {
     Route::post('/auth/register', [AuthController::class, 'register']);
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
     Route::get('/auctions/upcoming', [AuctionController::class, 'upcoming']);
     Route::get('/auctions/recent-wins', [AuctionController::class, 'recentWins']);
@@ -36,6 +39,9 @@ Route::prefix('v1')->group(function (): void {
 
         Route::get('/me/bids', [UserDashboardController::class, 'bids']);
         Route::get('/me/transactions', [UserDashboardController::class, 'transactions']);
+        Route::patch('/me/profile', [ProfileController::class, 'update']);
+        Route::patch('/me/email', [ProfileController::class, 'updateEmail']);
+        Route::patch('/me/password', [ProfileController::class, 'updatePassword']);
 
         Route::middleware(EnsureUserIsAdmin::class)->prefix('admin')->group(function (): void {
             Route::apiResource('products', ProductController::class);
