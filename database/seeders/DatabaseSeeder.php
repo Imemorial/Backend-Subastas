@@ -13,11 +13,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             BitPackSeeder::class,
-            WinnerShowcaseSeeder::class,
+            DemoAuctionSeeder::class,
         ]);
-
-        if (filter_var(env('DEMO_SEED', false), FILTER_VALIDATE_BOOL)) {
-            $this->call(DemoAuctionSeeder::class);
-        }
     }
 }
